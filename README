@@ -1,0 +1,83 @@
+music-recommender/
+│
+├── backend/
+│   ├── app/
+│   │   ├── main.py                 # FastAPI entry point
+│   │   ├── api/
+│   │   │   ├── __init__.py
+│   │   │   └── v1/
+│   │   │       ├── __init__.py
+│   │   │       └── routes_recommendation.py  # /recommend endpoint
+│   │   ├── core/
+│   │   │   ├── config.py           # Settings (paths, env, constants)
+│   │   │   └── logging_config.py   # Logger setup (optional)
+│   │   ├── models/
+│   │   │   ├── request_models.py   # Pydantic request schemas
+│   │   │   └── response_models.py  # Pydantic response schemas
+│   │   ├── services/
+│   │   │   ├── recommender_service.py  # Calls ML model, prepares output
+│   │   │   └── preprocessing.py        # Text/audio preprocessing
+│   │   ├── ml/
+│   │   │   ├── model.pkl           # Trained model (Random Forest etc.)
+│   │   │   ├── vectorizer.pkl      # TF-IDF or other encoders
+│   │   │   └── predict.py          # load_model(), predict(), etc.
+│   │   └── utils/
+│   │       └── helpers.py          # Common helper functions
+│   │
+│   ├── scripts/
+│   │   ├── train_model.py          # Train + save model
+│   │   └── evaluate_model.py       # Metrics, confusion matrix, etc.
+│   │
+│   ├── tests/
+│   │   ├── test_api.py             # Test /recommend API
+│   │   └── test_ml.py              # Test model load & prediction
+│   │
+│   ├── requirements.txt            # Python dependencies
+│   └── README.md
+│
+├── frontend/
+│   ├── app/ or pages/              # (Next.js routing)
+│   │   ├── page.tsx / index.tsx    # Home page with input form
+│   │   └── results/page.tsx        # Results page (optional)
+│   ├── components/
+│   │   ├── Layout.tsx              # Common layout
+│   │   ├── InputForm.tsx           # Text input for user mood/track
+│   │   ├── RecommendationCard.tsx  # Card UI for each song suggestion
+│   │   └── Navbar.tsx
+│   ├── lib/
+│   │   └── api.ts                  # Functions to call FastAPI (/recommend)
+│   ├── styles/
+│   │   └── globals.css             # Tailwind base styles
+│   ├── public/
+│   │   └── icons/                  # Logos, icons, images
+│   ├── next.config.mjs
+│   ├── tailwind.config.cjs
+│   ├── postcss.config.cjs
+│   ├── package.json
+│   └── README.md
+│
+├── data/
+│   ├── raw/
+│   │   └── spotify_dataset.csv     # Original dataset from Kaggle
+│   ├── processed/
+│   │   └── cleaned_dataset.csv     # After cleaning & feature engineering
+│   └── README.md                   # Explain dataset & features used
+│
+├── notebooks/
+│   ├── 01_eda.ipynb                # Exploratory Data Analysis
+│   ├── 02_feature_engineering.ipynb# Feature creation, scaling, encoding
+│   └── 03_model_training.ipynb     # Try models, tune, compare
+│
+├── docs/
+│   ├── SRS.md                      # Software Requirement Specification
+│   ├── Design_Document.md          # Architecture, diagrams
+│   ├── API_Documentation.md        # Describe /recommend, request/response
+│   └── Project_Report.md           # Final report for college submission
+│
+├── docker/
+│   ├── Dockerfile.backend          # Image for FastAPI
+│   ├── Dockerfile.frontend         # Image for Next.js
+│   └── docker-compose.yml          # Run both services together (optional)
+│
+├── .gitignore
+└── README.md                       # High-level project overview

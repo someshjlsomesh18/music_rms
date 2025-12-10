@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mini Spotify – Working Version</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #121212;
+      color: #fff;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 220px;
+      background: #000;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #222;
+    }
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      color: #1db954;
+    }
+    .nav-item {
+      padding: 8px 10px;
+      border-radius: 4px;
+      color: #b3b3b3;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .nav-item:hover,
+    .nav-item.active {
+      color: #1db954;
+      background: #181818;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, #222, #121212);
+      padding-bottom: 80px; /* player space */
+    }
+    .topbar {
+      padding: 16px 20px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .page-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0;
+    }
+    .page-sub { font-size: 13px; color: #b3b3b3; }
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      background: #181818;
+      border-radius: 999px;
+      border: 1px solid #444;
+    }
+    .avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: #1db954;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 3fr 2fr;
+      gap: 16px;
+      padding: 0 16px 16px;
+      height: calc(100vh - 110px);
+    }
+    .panel {
+      background: #181818;
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid #333;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 0;
+    }
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .song-table {
+      margin-top: 4px;
+      border-radius: 8px;
+      background: #181818;
+      overflow-y: auto;
+      flex: 1;
+      min-height: 0;
+    }
+    .song-header,
+    .song-row {
+      display: grid;
+      grid-template-columns: 40px 2fr 1.5fr 1.3fr 1.3fr;
+      font-size: 13px;
+      padding: 6px 8px;
+      align-items: center;
+    }
+    .song-header {
+      position: sticky;
+      top: 0;
+      background: #101010;
+      color: #888;
+      border-bottom: 1px solid #333;
+      z-index: 1;
+    }
+    .song-row {
+      cursor: pointer;
+      color: #eee;
+    }
+    .song-row:nth-child(odd) { background: #1a1a1a; }
+    .song-row:nth-child(even) { background: #111; }
+    .song-row:hover { background: #262626; }
+    .song-row.active { background: #1db954; color: #000; }
+
+    .btn {
+      margin-top: 10px;
+      padding: 8px 18px;
+      background: #1db954;
+      color: #000;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      align-self: flex-start;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .hint {
+      font-size: 12px;
+      color: #bbb;
+      margin-top: 4px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 6px;
+      margin-bottom: 4px;
+    }
+    .list-scroll {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 4px;
+    }
+    .card {
+      display: flex;
+      gap: 10px;
+      background: #111;
+      padding: 8px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      cursor: pointer;
+    }
+    .card:hover { background: #222; }
+    .cover {
+      width: 50px;
+      height: 50px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: #333;
+    }
+    .title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .meta {
+      font-size: 12px;
+      color: #aaa;
+    }
+    .error {
+      color: #ff9999;
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    /* PLAYER */
+    .player {
+      height: 80px;
+      background: #181818;
+      border-top: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      width: 100%;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+    }
+    .player-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .player-cover {
+      width: 54px;
+      height: 54px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: #333;
+    }
+    .player-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .player-artist {
+      font-size: 12px;
+      color: #aaa;
+    }
+    .player-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      max-width: 400px;
+    }
+    .player-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .player-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: none;
+      background: #282828;
+      color: #eee;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .player-btn.main {
+      background: #1db954;
+      color: #000;
+      font-weight: 700;
+    }
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+    }
+    .time-label {
+      font-size: 11px;
+      color: #bbb;
+      width: 40px;
+      text-align: center;
+    }
+    .bar {
+      flex: 1;
+      height: 4px;
+      border-radius: 999px;
+      background: #333;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .bar-fill {
+      width: 0%;
+      height: 100%;
+      background: #1db954;
+    }
+  </style>
+</head>
+<body>
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo">MiniSpotify</div>
+    <div class="nav-item active">🏠 Home</div>
+    <div class="nav-item">🔍 Search</div>
+    <div class="nav-item">🎧 Your Library</div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h1 class="page-title">Music Recommendation System</h1>
+        <div class="page-sub">
+          Simple and working version – songs, player, recommendations.
+        </div>
+      </div>
+      <div class="user-pill">
+        <div class="avatar">S</div>
+        <span>Someshwar</span>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- LEFT: Songs -->
+      <div class="panel">
+        <h2>All Songs</h2>
+        <div id="songs-table" class="song-table"></div>
+        <button id="rec-btn" class="btn" disabled>Get Recommendations</button>
+        <div id="songs-hint" class="hint"></div>
+      </div>
+
+      <!-- RIGHT: Recommendations & Recently Played -->
+      <div class="panel">
+        <h2>Discover</h2>
+
+        <div class="section-title">Recommendations</div>
+        <div id="recs" class="list-scroll"></div>
+        <div id="recs-hint" class="hint">
+          Choose a song and click <b>Get Recommendations</b>.
+        </div>
+
+        <div class="section-title">Recently Played</div>
+        <div id="recent" class="list-scroll"></div>
+
+        <div id="error" class="error"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAYER -->
+  <div class="player">
+    <div class="player-left">
+      <img id="player-cover" class="player-cover" />
+      <div>
+        <div id="player-title" class="player-title">No track selected</div>
+        <div id="player-artist" class="player-artist"></div>
+      </div>
+    </div>
+
+    <div class="player-center">
+      <div class="player-controls">
+        <button id="prev-btn" class="player-btn">⏮</button>
+        <button id="play-btn" class="player-btn main">▶</button>
+        <button id="next-btn" class="player-btn">⏭</button>
+      </div>
+      <div class="progress-row">
+        <span id="time-current" class="time-label">0:00</span>
+        <div id="progress-bar" class="bar">
+          <div id="progress-fill" class="bar-fill"></div>
+        </div>
+        <span id="time-total" class="time-label">0:00</span>
+      </div>
+    </div>
+
+    <div class="player-right">
+      MiniSpotify • Demo
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000";
+
+    const songsTable = document.getElementById("songs-table");
+    const recsDiv = document.getElementById("recs");
+    const recBtn = document.getElementById("rec-btn");
+    const errorDiv = document.getElementById("error");
+    const songsHint = document.getElementById("songs-hint");
+    const recentDiv = document.getElementById("recent");
+
+    const playerCover = document.getElementById("player-cover");
+    const playerTitle = document.getElementById("player-title");
+    const playerArtist = document.getElementById("player-artist");
+    const playBtn = document.getElementById("play-btn");
+    const nextBtn = document.getElementById("next-btn");
+    const prevBtn = document.getElementById("prev-btn");
+
+    const progressBar = document.getElementById("progress-bar");
+    const progressFill = document.getElementById("progress-fill");
+    const timeCurrentLabel = document.getElementById("time-current");
+    const timeTotalLabel = document.getElementById("time-total");
+
+    let songs = [];
+    let selectedIndex = -1;     // index in songs[]
+    let audio = null;
+    let isPlaying = false;
+    let recentlyPlayed = [];
+    let recommendations = [];
+
+    // ---------- Helpers ----------
+    function formatTime(seconds) {
+      if (!isFinite(seconds)) return "0:00";
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return m + ":" + (s < 10 ? "0" + s : s);
+    }
+    function resetProgress() {
+      progressFill.style.width = "0%";
+      timeCurrentLabel.textContent = "0:00";
+      timeTotalLabel.textContent = "0:00";
+    }
+    function updateProgress() {
+      if (!audio) return;
+      const current = audio.currentTime || 0;
+      const total = audio.duration || 0;
+      const ratio = total ? (current / total) * 100 : 0;
+      progressFill.style.width = ratio + "%";
+      timeCurrentLabel.textContent = formatTime(current);
+      timeTotalLabel.textContent = formatTime(total);
+    }
+    function updatePlayerUI(song) {
+      playerTitle.textContent = song.title;
+      playerArtist.textContent = song.artist;
+      if (song.cover_url) {
+        playerCover.src = song.cover_url;
+      } else {
+        playerCover.removeAttribute("src");
+      }
+    }
+    function highlightSelectedRow() {
+      const rows = document.querySelectorAll(".song-row");
+      rows.forEach((r) => r.classList.remove("active"));
+      if (selectedIndex >= 0 && selectedIndex < rows.length) {
+        rows[selectedIndex].classList.add("active");
+      }
+    }
+    function addRecentlyPlayed(song) {
+      recentlyPlayed = [
+        song,
+        ...recentlyPlayed.filter((s) => s.id !== song.id),
+      ].slice(0, 5);
+      renderRecentlyPlayed();
+    }
+
+    // ---------- Audio control ----------
+    function loadAndPlay(index) {
+      if (index < 0 || index >= songs.length) return;
+      const song = songs[index];
+      selectedIndex = index;
+      highlightSelectedRow();
+      updatePlayerUI(song);
+
+      if (audio) {
+        audio.pause();
+        audio = null;
+      }
+      resetProgress();
+
+      if (!song.audio_url) return;
+
+      audio = new Audio(song.audio_url);
+      audio.addEventListener("loadedmetadata", () => {
+        timeTotalLabel.textContent = formatTime(audio.duration || 0);
+      });
+      audio.addEventListener("timeupdate", updateProgress);
+      audio.addEventListener("ended", () => {
+        isPlaying = false;
+        playBtn.textContent = "▶";
+        resetProgress();
+      });
+
+      audio.play().then(
+        () => {
+          isPlaying = true;
+          playBtn.textContent = "⏸";
+          addRecentlyPlayed(song);
+        },
+        (err) => console.error("Play failed:", err)
+      );
+    }
+
+    function playPause() {
+      if (!audio) {
+        if (selectedIndex >= 0) loadAndPlay(selectedIndex);
+        return;
+      }
+      if (isPlaying) {
+        audio.pause();
+        isPlaying = false;
+        playBtn.textContent = "▶";
+      } else {
+        audio.play().then(
+          () => {
+            isPlaying = true;
+            playBtn.textContent = "⏸";
+          },
+          (err) => console.error("Play failed:", err)
+        );
+      }
+    }
+
+    function playNext() {
+      if (!songs.length) return;
+      const nextIndex = selectedIndex < songs.length - 1 ? selectedIndex + 1 : 0;
+      loadAndPlay(nextIndex);
+    }
+    function playPrev() {
+      if (!songs.length) return;
+      const prevIndex = selectedIndex > 0 ? selectedIndex - 1 : songs.length - 1;
+      loadAndPlay(prevIndex);
+    }
+
+    // ---------- Rendering ----------
+    function renderSongs() {
+      songsTable.innerHTML = "";
+      const header = document.createElement("div");
+      header.className = "song-header";
+      header.innerHTML =
+        "<span>#</span><span>Title</span><span>Artist</span><span>Genre</span><span>Mood</span>";
+      songsTable.appendChild(header);
+
+      songs.forEach((song, index) => {
+        const row = document.createElement("div");
+        row.className = "song-row";
+        row.innerHTML =
+          "<span>" +
+          (index + 1) +
+          "</span><span>" +
+          song.title +
+          "</span><span>" +
+          song.artist +
+          "</span><span>" +
+          song.genre +
+          "</span><span>" +
+          song.mood +
+          "</span>";
+
+        row.addEventListener("click", () => {
+          loadAndPlay(index);
+          recBtn.disabled = false;
+        });
+
+        songsTable.appendChild(row);
+      });
+
+      if (!songs.length) {
+        const msg = document.createElement("div");
+        msg.style.padding = "10px";
+        msg.textContent = "No songs available from backend.";
+        songsTable.appendChild(msg);
+      }
+    }
+
+    function renderRecommendations() {
+      recsDiv.innerHTML = "";
+      if (!recommendations.length) {
+        document.getElementById("recs-hint").textContent =
+          "No recommendations yet.";
+        return;
+      }
+      document.getElementById("recs-hint").textContent = "";
+
+      recommendations.forEach((song) => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const img = document.createElement("img");
+        img.className = "cover";
+        if (song.cover_url) img.src = song.cover_url;
+
+        const info = document.createElement("div");
+        const t = document.createElement("div");
+        t.className = "title";
+        t.textContent = song.title;
+        const m = document.createElement("div");
+        m.className = "meta";
+        m.textContent =
+          song.artist + " • " + song.genre + " • " + song.mood;
+        info.appendChild(t);
+        info.appendChild(m);
+
+        card.appendChild(img);
+        card.appendChild(info);
+
+        card.addEventListener("click", () => {
+          // play recommended song (not part of songs list, so just load directly)
+          const fakeIndex = songs.findIndex((s) => s.id === song.id);
+          if (fakeIndex !== -1) {
+            loadAndPlay(fakeIndex);
+          } else {
+            // if not in songs list, just play it separately
+            selectedIndex = -1;
+            if (audio) {
+              audio.pause();
+              audio = null;
+            }
+            resetProgress();
+            updatePlayerUI(song);
+
+            if (song.audio_url) {
+              audio = new Audio(song.audio_url);
+              audio.addEventListener("loadedmetadata", () => {
+                timeTotalLabel.textContent = formatTime(audio.duration || 0);
+              });
+              audio.addEventListener("timeupdate", updateProgress);
+              audio.addEventListener("ended", () => {
+                isPlaying = false;
+                playBtn.textContent = "▶";
+                resetProgress();
+              });
+              audio.play().then(
+                () => {
+                  isPlaying = true;
+                  playBtn.textContent = "⏸";
+                  addRecentlyPlayed(song);
+                },
+                (err) => console.error("Play failed:", err)
+              );
+            }
+          }
+        });
+
+        recsDiv.appendChild(card);
+      });
+    }
+
+    function renderRecentlyPlayed() {
+      recentDiv.innerHTML = "";
+      if (!recentlyPlayed.length) {
+        const msg = document.createElement("div");
+        msg.className = "hint";
+        msg.textContent = "Play songs to see them here.";
+        recentDiv.appendChild(msg);
+        return;
+      }
+
+      recentlyPlayed.forEach((song) => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const img = document.createElement("img");
+        img.className = "cover";
+        if (song.cover_url) img.src = song.cover_url;
+
+        const info = document.createElement("div");
+        const t = document.createElement("div");
+        t.className = "title";
+        t.textContent = song.title;
+        const m = document.createElement("div");
+        m.className = "meta";
+        m.textContent = song.artist;
+        info.appendChild(t);
+        info.appendChild(m);
+
+        card.appendChild(img);
+        card.appendChild(info);
+
+        card.addEventListener("click", () => {
+          const idx = songs.findIndex((s) => s.id === song.id);
+          if (idx !== -1) {
+            loadAndPlay(idx);
+          }
+        });
+
+        recentDiv.appendChild(card);
+      });
+    }
+
+    // ---------- Events ----------
+    playBtn.addEventListener("click", playPause);
+    nextBtn.addEventListener("click", playNext);
+    prevBtn.addEventListener("click", playPrev);
+
+    progressBar.addEventListener("click", (e) => {
+      if (!audio || !audio.duration) return;
+      const rect = progressBar.getBoundingClientRect();
+      const offsetX = e.clientX - rect.left;
+      const ratio = offsetX / rect.width;
+      audio.currentTime = ratio * audio.duration;
+      updateProgress();
+    });
+
+    recBtn.addEventListener("click", async () => {
+      if (selectedIndex < 0 || !songs[selectedIndex]) return;
+      const currentSong = songs[selectedIndex];
+      try {
+        errorDiv.textContent = "";
+        recsDiv.innerHTML = "";
+        document.getElementById("recs-hint").textContent =
+          "Loading recommendations...";
+        const res = await fetch(
+          API_BASE + "/recommendations?song_id=" + currentSong.id
+        );
+        if (!res.ok) throw new Error("Failed to fetch /recommendations");
+        recommendations = await res.json();
+        renderRecommendations();
+      } catch (err) {
+        console.error(err);
+        errorDiv.textContent = "Could not load recommendations.";
+      }
+    });
+
+    // ---------- Initial load ----------
+    async function init() {
+      try {
+        songsHint.textContent = "Loading songs from backend...";
+        const res = await fetch(API_BASE + "/songs");
+        if (!res.ok) throw new Error("Failed to fetch /songs");
+        songs = await res.json();
+        renderSongs();
+        songsHint.textContent = "Click a song to play it.";
+        renderRecentlyPlayed();
+      } catch (err) {
+        console.error(err);
+        errorDiv.textContent =
+          "Could not load songs. Check that FastAPI backend is running.";
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

@@ -1,3 +1,32 @@
-music_rms\Frontend\node_modules
-music_rms\Frontend\.next
-music_rms\music-recommender-backend\__pycache__
+# Node modules
+music_rms/Frontend/node_modules/
+node_modules/
+
+# Next.js build output
+music_rms/Frontend/.next/
+.next/
+
+# Python cache files
+music_rms/music-recommender-backend/__pycache__/
+__pycache__/
+
+# Python virtual environments
+venv/
+env/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production

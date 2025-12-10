@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Music Recommendation System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    input, button {
+      padding: 8px;
+      font-size: 16px;
+    }
+    #songInput {
+      width: 70%;
+    }
+    #results {
+      margin-top: 20px;
+    }
+    .song-item {
+      border-bottom: 1px solid #ccc;
+      padding: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Music Recommendation</h1>
+
+  <label for="songInput">Enter a song title:</label><br /><br />
+  <input type="text" id="songInput" placeholder="Shape of You" />
+  <button onclick="getRecommendations()">Get Recommendations</button>
+
+  <div id="message"></div>
+  <div id="results"></div>
+
+  <script>
+    const API_URL = "http://127.0.0.1:8000/recommend";
+
+    async function getRecommendations() {
+      const songTitle = document.getElementById("songInput").value.trim();
+      const msgDiv = document.getElementById("message");
+      const resultsDiv = document.getElementById("results");
+
+      msgDiv.textContent = "";
+      resultsDiv.innerHTML = "";
+
+      if (!songTitle) {
+        msgDiv.textContent = "Please enter a song title.";
+        return;
+      }
+
+      msgDiv.textContent = "Loading recommendations...";
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            song_title: songTitle,
+            n: 5
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          msgDiv.textContent = "Error: " + (errorData.detail || response.statusText);
+          return;
+        }
+
+        const data = await response.json();
+        msgDiv.textContent = `Recommendations for "${data.input_song}":`;
+
+        if (!data.recommendations.length) {
+          resultsDiv.innerHTML = "<p>No recommendations found.</p>";
+          return;
+        }
+
+        data.recommendations.forEach((song) => {
+          const div = document.createElement("div");
+          div.className = "song-item";
+          div.innerHTML = `
+            <strong>${song.title}</strong><br />
+            Artist: ${song.artist}<br />
+            Genre: ${song.genre}<br />
+            Popularity: ${song.popularity}
+          `;
+          resultsDiv.appendChild(div);
+        });
+      } catch (err) {
+        console.error(err);
+        msgDiv.textContent = "Failed to fetch recommendations.";
+      }
+    }
+  </script>
+</body>
+</html>
